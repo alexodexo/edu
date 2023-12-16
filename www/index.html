@@ -26,7 +26,7 @@
             background-color: rgba(0, 0, 0, 0.85); /* Semi-transparent black */
             color: limegreen;
             padding: 10px;
-            height: 300px;
+            height: 250px; /* Adjusted height for consoles */
             overflow: auto;
             border: 2px solid limegreen;
             margin-bottom: 20px; /* Space for the trunk image */
@@ -79,7 +79,7 @@
 
         socket.on('trunk_opened', function () {
             const trunkImage = document.getElementById('trunkImage');
-            trunkImage.src = 'opened.png'; // Ändert das Bild zur offenen Truhe
+            trunkImage.src = 'opened.png'; // Changes the image to the opened trunk
         });
     </script>
 </body>
