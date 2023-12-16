@@ -1,12 +1,11 @@
-#include <ESP8266WiFi.h>
-#include <PubSubClient.h>
+#include <ESP8266WiFi.h>                             //WLAN Funktionalität importieren
+#include <PubSubClient.h>                            //MQTT importieren
 
-// WLAN-Zugangsdaten
-const char* ssid = "Opa";
-const char* password = "OmaundOpa";
-
-// MQTT Server
-const char* mqtt_server = "192.168.178.25";
+const char* ssid = "Opa";                            //WLAN Name
+const char* password = "OmaundOpa";                  //WLAN Password
+const char* mqtt_server = "192.168.178.25";          //IP Adresse des Raspberry Pi
+const char* topic = "edu/team5";                     //Variable fürs Topic
+const char* esp_name = "team5";                      //Name des ESPs
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -18,40 +17,39 @@ void setup_wifi() {
   Serial.print("Verbindung zu ");
   Serial.println(ssid);
 
-  WiFi.begin(ssid, password);
+  WiFi.begin(ssid, password);                       //WLAN Verbindung wird via importierter Klasse aufgebaut
 
-  while (WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED) {           //Programm läuft erst weiter, wenn wir mit dem WLAN Verbunden sind
     delay(500);
-    Serial.print(".");
+    Serial.print(".");                             
   }
 
   Serial.println("");
   Serial.print("Verbunden, IP-Adresse: ");
-  Serial.println(WiFi.localIP());
+  Serial.println(WiFi.localIP());                   //Die IP des ESPs wird in der Konsole ausgegeben
 }
 
 void reconnect() {
-  // Schleife, bis wir mit dem MQTT Broker verbunden sind
-  while (!client.connected()) {
+ 
+  while (!client.connected()) {                         // Schleife, bis wir mit dem MQTT Broker verbunden sind
     Serial.print("Versuche, eine MQTT-Verbindung herzustellen...");
 
     // Verbindungsaufbau
-    if (client.connect("ESP8266Client")) {
+    if (client.connect(esp_name)) {                    //Verbindung zum Broker 
       Serial.println("verbunden");
     } else {
       Serial.print("Fehler, rc=");
-      Serial.print(client.state());
+      Serial.print(client.state());                     //Fehlercode ausgeben
       Serial.println(" Neuer Versuch in 5 Sekunden");
-      // 5 Sekunden warten, bevor erneut versucht wird
-      delay(5000);
+      delay(5000);                                      // 5 Sekunden warten, bevor erneut versucht wird
     }
   }
 }
 
 void setup() {
-  Serial.begin(115200);
-  setup_wifi();
-  client.setServer(mqtt_server, 1883);
+  Serial.begin(115200);                                 //Baudrate einstellen !!Serial Monitor muss umgestellt werden auf 115200!!
+  setup_wifi();                                         //Die Methode für die WLAN Verbindung wird aufgerufen, erst wenn die Verbindung steht geht das Programm weiter
+  client.setServer(mqtt_server, 1883);                  //Der MQTT-Broker wird abgespeichert (1883 ist der Port)
 }
 
 void loop() {
@@ -60,18 +58,16 @@ void loop() {
   }
   client.loop();
 
-  // Sensorwert lesen
-  int sensorValue = analogRead(A0);
   
-  // Sensorwert in der Konsole ausgeben
+  int sensorValue = analogRead(A0);                     //Sensorwert wird eingelesen und in sensorValue abgespiechert
   Serial.print("Sensorwert: ");
   Serial.println(sensorValue);
 
-  // Sensorwert als String konvertieren und veröffentlichen
-  char msg[16];
-  sprintf(msg, "%d", sensorValue);
-  client.publish("sensor", msg);
+  
+  char msg[16];                                        //Erstellen eines 16er Char Arrays
+  sprintf(msg, "%d", sensorValue);                     //Die Methode wandelt unseren int in einem String (char-Kette/Array) 
+  //                           !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  client.publish(topic, msg);                          //Sensorwert wird gepublished auf dem deklariertem Topic
 
-  // Warte 5 Sekunden (5000 Millisekunden)
-  delay(5000);
+  delay(2500);                                          //Sensor Warte 2.5 Sekunden (2500 Millisekunden)
 }
