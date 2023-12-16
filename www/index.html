@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edu-Hub</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: 'Courier New', Courier, monospace;
+            color: white;
+            overflow: hidden;
+            margin: 0;
+            height: 100vh;
+            background: url('matrix.gif') repeat;
+            background-size: cover;
+        }
+        #consoleContainer {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+        }
+        .console {
+            background-color: rgba(0, 0, 0, 0.85); /* Semi-transparent black */
+            color: limegreen;
+            padding: 10px;
+            height: 300px;
+            overflow: auto;
+            border: 2px solid limegreen;
+            margin-bottom: 20px; /* Space for the trunk image */
+        }
+        .consoleHeader {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        h1 {
+            font-size: 3em;
+            font-weight: bold;
+            z-index: 2;
+            margin-bottom: 20px; /* Space above the consoles */
+        }
+        #trunkImageContainer {
+            margin-top: 20px;
+        }
+        .trunkImage {
+            width: 256px; /* Oder eine andere Größe nach Wahl */
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Edu-Hub</h1>
+    <div id="consoleContainer">
+        <div id="team1" class="console"><div class="consoleHeader">Team 1</div></div>
+        <div id="team2" class="console"><div class="consoleHeader">Team 2</div></div>
+        <div id="team3" class="console"><div class="consoleHeader">Team 3</div></div>
+        <div id="team4" class="console"><div class="consoleHeader">Team 4</div></div>
+    </div>
+    <div id="trunkImageContainer">
+        <img id="trunkImage" src="closed.png" alt="Closed Trunk" class="trunkImage">
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        socket.on('mqtt_message', function (data) {
+            const { topic, message } = data;
+            const consoleId = topic.split('/')[1]; // Get 'team1', 'team2', etc. from topic
+            if (consoleId.startsWith('team')) {
+                const consoleDiv = document.getElementById(consoleId);
+                if (consoleDiv) {
+                    consoleDiv.innerHTML += message + '<br>';
+                    consoleDiv.scrollTop = consoleDiv.scrollHeight;
+                }
+            }
+        });
+
+        socket.on('trunk_opened', function () {
+            const trunkImage = document.getElementById('trunkImage');
+            trunkImage.src = 'opened.png'; // Ändert das Bild zur offenen Truhe
+        });
+    </script>
+</body>
+</html>
