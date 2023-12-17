@@ -30,13 +30,24 @@ void setup_wifi() {
 
 // Diese Funktion wird aufgerufen, wenn eine Nachricht auf einem abonnierten Topic ankommt
 void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Nachricht erhalten unter [");
-  Serial.print(topic);
-  Serial.print("] ");
+  // Erstelle einen String aus dem Payload
+  char message[length + 1];
   for (unsigned int i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
+    message[i] = (char)payload[i];
   }
-  Serial.println();
+  message[length] = '\0'; // Füge ein Nullzeichen hinzu, um das Ende des Strings anzuzeigen
+
+  // Konvertiere den Payload-String in einen Integer
+  int messageValue = atoi(message);
+
+  // Speichere das Topic als String
+  String topicStr = String(topic);
+
+  // Jetzt können Topic und MessageValue in der Konsole ausgegeben werden
+  Serial.print("Nachricht erhalten unter [");
+  Serial.print(topicStr);
+  Serial.print("] mit dem Wert ");
+  Serial.println(messageValue);
 }
 
 // Diese Funktion stellt die Verbindung mit dem MQTT-Broker her
