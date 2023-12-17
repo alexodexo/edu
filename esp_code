@@ -1,12 +1,12 @@
 #include <ESP8266WiFi.h>        // Einbinden der WiFi-Bibliothek für den ESP8266
 #include <PubSubClient.h>       // Einbinden der MQTT-Bibliothek
 
-// WLAN-Zugangsdaten
-const char* ssid = "Opa";       // Name des WLAN-Netzwerks
-const char* password = "IhrPasswort"; // WLAN-Passwort, ersetzen Sie "IhrPasswort" mit dem tatsächlichen Passwort
-
-// MQTT Broker Einstellungen
-const char* mqtt_server = "192.168.178.25"; // Die IP-Adresse des MQTT-Brokers
+const char* ssid = "Opa";                                   //WLAN Name
+const char* password = "OmaundOpa";                         //WLAN Password
+const char* mqtt_server = "192.168.178.25";                 //IP Adresse des Raspberry Pi
+const char* team_topic = "edu/team1";                       //Variable fürs Sensor-Topic
+const char* key_topic = "edu/key";                       //Variable fürs Sensor-Topic
+const char* esp_name = "team5";                             //Name des ESPs
 
 WiFiClient espClient;           // Erstellen eines WiFiClient-Objekts
 PubSubClient client(espClient); // Erstellen eines MQTT Client-Objekts
@@ -48,21 +48,30 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print(topicStr);
   Serial.print("] mit dem Wert ");
   Serial.println(messageValue);
+
+
+
+  //----------------------------------------------//
+  //Hier kommt euer selbstgeschriebener Code rein //
+  //----------------------------------------------//
+
+
 }
 
-// Diese Funktion stellt die Verbindung mit dem MQTT-Broker her
+// Diese Funktion stellt die Verbindung mit dem MQTT-Broker her und wird bei Verbindungsabbruch ausgeführt, bis die Broker verbindung wieder steht.
 void reconnect() {
-  // Schleife, bis wir mit dem MQTT Broker verbunden sind
-  while (!client.connected()) {
+ 
+  while (!client.connected()) {                         // Schleife, bis wir mit dem MQTT Broker verbunden sind
     Serial.print("Versuche, eine MQTT-Verbindung herzustellen...");
-    if (client.connect("ESP8266Client")) { // Verbindungsversuch mit einem einzigartigen Client-ID
+
+    // Verbindungsaufbau
+    if (client.connect(esp_name)) {                    //Verbindung zum Broker 
       Serial.println("verbunden");
-      client.subscribe("edu/master"); // Subscriben des Topics "edu/master"
     } else {
-      Serial.print("fehlgeschlagen, rc=");
-      Serial.print(client.state());
+      Serial.print("Fehler, rc=");
+      Serial.print(client.state());                     //Fehlercode ausgeben
       Serial.println(" Neuer Versuch in 5 Sekunden");
-      delay(5000); // Warte 5 Sekunden vor dem nächsten Verbindungsversuch
+      delay(5000);                                      // 5 Sekunden warten, bevor erneut versucht wird
     }
   }
 }
@@ -74,7 +83,7 @@ void setup() {
   client.setCallback(callback);        // Festlegen der Callback-Funktion
 
   pinMode(A0, INPUT); // Initialisieren des A0 Pins als Eingang
-  pinMode(D1, INPUT); // Initialisieren des D1 Pins als Eingang
+  pinMode(D1, INPUT_PULLUP); // Initialisieren des D1 Pins als Eingang
 }
 
 void loop() {
@@ -105,7 +114,7 @@ void loop() {
     Serial.println(msgD1);
 
     // Veröffentlichen der Sensorwerte auf den entsprechenden MQTT-Topics
-    client.publish("edu/team1", msgA0);
-    client.publish("edu/key", msgD1);
+    client.publish(team_topic, msgA0);
+    client.publish(key_topic, msgD1);
   }
 }
