@@ -1,0 +1,100 @@
+#include <ESP8266WiFi.h>        // Einbinden der WiFi-Bibliothek für den ESP8266
+#include <PubSubClient.h>       // Einbinden der MQTT-Bibliothek
+
+// WLAN-Zugangsdaten
+const char* ssid = "Opa";       // Name des WLAN-Netzwerks
+const char* password = "IhrPasswort"; // WLAN-Passwort, ersetzen Sie "IhrPasswort" mit dem tatsächlichen Passwort
+
+// MQTT Broker Einstellungen
+const char* mqtt_server = "192.168.178.25"; // Die IP-Adresse des MQTT-Brokers
+
+WiFiClient espClient;           // Erstellen eines WiFiClient-Objekts
+PubSubClient client(espClient); // Erstellen eines MQTT Client-Objekts
+
+// Diese Funktion verbindet den ESP8266 mit dem WLAN
+void setup_wifi() {
+  delay(10);
+  Serial.println("Verbinde mit WLAN...");
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("");
+  Serial.println("WLAN verbunden");
+  Serial.println("IP-Adresse: ");
+  Serial.println(WiFi.localIP());
+}
+
+// Diese Funktion wird aufgerufen, wenn eine Nachricht auf einem abonnierten Topic ankommt
+void callback(char* topic, byte* payload, unsigned int length) {
+  Serial.print("Nachricht erhalten unter [");
+  Serial.print(topic);
+  Serial.print("] ");
+  for (unsigned int i = 0; i < length; i++) {
+    Serial.print((char)payload[i]);
+  }
+  Serial.println();
+}
+
+// Diese Funktion stellt die Verbindung mit dem MQTT-Broker her
+void reconnect() {
+  // Schleife, bis wir mit dem MQTT Broker verbunden sind
+  while (!client.connected()) {
+    Serial.print("Versuche, eine MQTT-Verbindung herzustellen...");
+    if (client.connect("ESP8266Client")) { // Verbindungsversuch mit einem einzigartigen Client-ID
+      Serial.println("verbunden");
+      client.subscribe("edu/master"); // Subscriben des Topics "edu/master"
+    } else {
+      Serial.print("fehlgeschlagen, rc=");
+      Serial.print(client.state());
+      Serial.println(" Neuer Versuch in 5 Sekunden");
+      delay(5000); // Warte 5 Sekunden vor dem nächsten Verbindungsversuch
+    }
+  }
+}
+
+void setup() {
+  Serial.begin(115200); // Starten der seriellen Kommunikation mit 115200 Baud
+  setup_wifi();         // Aufrufen der Funktion zum Verbinden mit dem WLAN
+  client.setServer(mqtt_server, 1883); // Einstellen des MQTT-Servers und Ports
+  client.setCallback(callback);        // Festlegen der Callback-Funktion
+
+  pinMode(A0, INPUT); // Initialisieren des A0 Pins als Eingang
+  pinMode(D1, INPUT); // Initialisieren des D1 Pins als Eingang
+}
+
+void loop() {
+  if (!client.connected()) {
+    reconnect(); // Stellt sicher, dass wir mit dem MQTT-Broker verbunden sind
+  }
+  client.loop(); // Diese Funktion muss regelmäßig aufgerufen werden, um intern MQTT-Kommunikationsaufgaben durchzuführen
+
+  static long lastMsg = 0;
+  long now = millis();
+  if (now - lastMsg > 2500) { // Prüft, ob 2,5 Sekunden vergangen sind
+    lastMsg = now;
+
+    // Auslesen der Sensoren und Speichern in Variablen
+    int sensorValueA0 = analogRead(A0);
+    int sensorValueD1 = digitalRead(D1);
+
+    // Erstellen von Nachrichten-Strings für die Sensorwerte
+    char msgA0[8];
+    char msgD1[8];
+    itoa(sensorValueA0, msgA0, 10); // Konvertierung des Integer-Wertes in einen String
+    itoa(sensorValueD1, msgD1, 10); // Konvertierung des Integer-Wertes in einen String
+
+    // Ausgabe der Sensorwerte auf der seriellen Konsole
+    Serial.print("Sensorwert A0: ");
+    Serial.println(msgA0);
+    Serial.print("Sensorwert D1: ");
+    Serial.println(msgD1);
+
+    // Veröffentlichen der Sensorwerte auf den entsprechenden MQTT-Topics
+    client.publish("edu/team1", msgA0);
+    client.publish("edu/key", msgD1);
+  }
+}
