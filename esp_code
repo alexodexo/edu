@@ -10,6 +10,8 @@ const char* key_topic = "edu/key";                       //Variable fürs key-To
 //Bitte IMMER zu der Nummer unterm ESP abändern //
 const char* team_topic = "edu/team1";                       //Variable fürs Sensor-Topic
 const char* esp_name = "team1";                             //Name des ESPs
+//Das Topic, welches der ESP subscriben soll
+const char* sub_topic = "edu/sub";                          
 //----------------------------------------------//
 
 
@@ -73,6 +75,8 @@ void reconnect() {
     // Verbindungsaufbau
     if (client.connect(esp_name)) {                    //Verbindung zum Broker 
       Serial.println("verbunden");
+      client.subscribe(sub_topic);                      //Das gewünschte Topic wird abonniert
+
     } else {
       Serial.print("Fehler, rc=");
       Serial.print(client.state());                     //Fehlercode ausgeben
