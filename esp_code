@@ -4,9 +4,15 @@
 const char* ssid = "Opa";                                   //WLAN Name
 const char* password = "OmaundOpa";                         //WLAN Password
 const char* mqtt_server = "192.168.178.25";                 //IP Adresse des Raspberry Pi
+const char* key_topic = "edu/key";                       //Variable fürs key-Topic
+
+//----------------------------------------------//
+//Bitte IMMER zu der Nummer unterm ESP abändern //
 const char* team_topic = "edu/team1";                       //Variable fürs Sensor-Topic
-const char* key_topic = "edu/key";                       //Variable fürs Sensor-Topic
-const char* esp_name = "team5";                             //Name des ESPs
+const char* esp_name = "team1";                             //Name des ESPs
+//----------------------------------------------//
+
+
 
 WiFiClient espClient;           // Erstellen eines WiFiClient-Objekts
 PubSubClient client(espClient); // Erstellen eines MQTT Client-Objekts
@@ -113,8 +119,18 @@ void loop() {
     Serial.print("Sensorwert D1: ");
     Serial.println(msgD1);
 
+
+
+
+    //----------------------------------------------//
     // Veröffentlichen der Sensorwerte auf den entsprechenden MQTT-Topics
     client.publish(team_topic, msgA0);
     client.publish(key_topic, msgD1);
+    //----------------------------------------------//
+
+
+
+
+
   }
 }
