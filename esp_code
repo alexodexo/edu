@@ -1,20 +1,13 @@
 #include <ESP8266WiFi.h>        // Einbinden der WiFi-Bibliothek für den ESP8266
 #include <PubSubClient.h>       // Einbinden der MQTT-Bibliothek
 
-const char* ssid = "Opa";                                   //WLAN Name
-const char* password = "OmaundOpa";                         //WLAN Password
-const char* mqtt_server = "192.168.178.25";                 //IP Adresse des Raspberry Pi
-const char* key_topic = "edu/key";                       //Variable fürs key-Topic
-
-//----------------------------------------------//
-//Bitte IMMER zu der Nummer unterm ESP abändern //
+const char* ssid = "edu";                                   //WLAN Name
+const char* password = "education";                         //WLAN Password
+const char* mqtt_server = "192.168.188.25";                 //IP Adresse des Raspberry Pi
 const char* team_topic = "edu/team1";                       //Variable fürs Sensor-Topic
+const char* key_topic = "edu/key";                          //Variable fürs Sensor-Topic
 const char* esp_name = "team1";                             //Name des ESPs
-//Das Topic, welches der ESP subscriben soll
-const char* sub_topic = "edu/sub";                          
-//----------------------------------------------//
-
-
+const char* sub_topic = "edu/sub";                          //Das Topic, welches der ESP subscriben soll
 
 WiFiClient espClient;           // Erstellen eines WiFiClient-Objekts
 PubSubClient client(espClient); // Erstellen eines MQTT Client-Objekts
@@ -76,7 +69,6 @@ void reconnect() {
     if (client.connect(esp_name)) {                    //Verbindung zum Broker 
       Serial.println("verbunden");
       client.subscribe(sub_topic);                      //Das gewünschte Topic wird abonniert
-
     } else {
       Serial.print("Fehler, rc=");
       Serial.print(client.state());                     //Fehlercode ausgeben
@@ -123,18 +115,11 @@ void loop() {
     Serial.print("Sensorwert D1: ");
     Serial.println(msgD1);
 
-
-
-
-    //----------------------------------------------//
     // Veröffentlichen der Sensorwerte auf den entsprechenden MQTT-Topics
+
+
+
     client.publish(team_topic, msgA0);
     client.publish(key_topic, msgD1);
-    //----------------------------------------------//
-
-
-
-
-
   }
 }
